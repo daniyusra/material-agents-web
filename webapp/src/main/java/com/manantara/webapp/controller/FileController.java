@@ -100,7 +100,9 @@ public class FileController {
 
             ResultSetMetaData meta = rs2.getMetaData();
             int columnCount = meta.getColumnCount();
-
+            
+            schema.append("\n");
+            schema.append("Example rows:");
             while (rs2.next()) {
                 for (int i = 1; i <= columnCount; i++) {
                     schema.append(meta.getColumnName(i))
@@ -138,13 +140,13 @@ public class FileController {
                 columns.add(meta.getColumnName(i));
             }
 
-            List<Map<String, Object>> rows = new ArrayList<>();
+            List<Map<String, String>> rows = new ArrayList<>();
 
             while (rs.next()) {
-                Map<String, Object> row = new LinkedHashMap<>();
+                Map<String, String> row = new LinkedHashMap<>();
 
                 for (int i = 1; i <= columnCount; i++) {
-                    row.put(columns.get(i - 1), rs.getObject(i));
+                    row.put(columns.get(i - 1), rs.getObject(i).toString());
                 }
 
                 rows.add(row);
