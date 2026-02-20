@@ -2,9 +2,10 @@ import { useState, type FormEvent } from "react";
 
 interface MessageFormProps {
   onSubmit: (input: string) => void;
+  disabled?: boolean;
 }
 
-export function MessageForm({ onSubmit }: MessageFormProps) {
+export function MessageForm({ onSubmit, disabled }: MessageFormProps) {
   const [input, setInput] = useState<string>("");
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -20,7 +21,7 @@ export function MessageForm({ onSubmit }: MessageFormProps) {
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
-      <button type="submit">Send</button>
+      <button type="submit" disabled={disabled}>Send</button>
     </form>
   );
 }
