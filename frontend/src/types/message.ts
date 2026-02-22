@@ -1,9 +1,11 @@
 export interface MessageRequest {
-  input: string;
+  thread_id: string;
+  table_name: string;
+  message: string
 }
 
 export interface MessageResponse {
-  id: number;
-  userInput: string;
-  generatedResponse: string;
+  thread_id: string;
+  reply: string;
+  image_base64: string;
 }

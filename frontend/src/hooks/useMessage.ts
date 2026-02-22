@@ -7,12 +7,12 @@ export function useMessage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const send = async (input: string) => {
+  const send = async (userInput: string, tableName: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await sendMessage({ input });
+      const data = await sendMessage({message: userInput, table_name: tableName, thread_id:""});
       setResponse(data);
     } catch (err) {
       setError("Something went wrong " + err);
