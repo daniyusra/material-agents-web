@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api")
 public class FileController {
 
-    private static final String SQLITE_DB = "data.db";
+    public static final String SQLITE_DB = "data.db";
 
     @RequestMapping(value = "info", method = RequestMethod.GET)
     public String info() {
@@ -50,7 +51,6 @@ public class FileController {
             Connection conn = DriverManager.getConnection("jdbc:duckdb:");
             Statement stmt = conn.createStatement();
 
-            
             stmt.execute("""
                 CREATE TABLE %s AS
                 SELECT * FROM read_csv_auto('%s');
@@ -60,10 +60,20 @@ public class FileController {
                 ATTACH '%s' AS sqlite_db (TYPE SQLITE);
             """.formatted(SQLITE_DB));
 
+            //TODO: move the line of code below to a separate app startup layer
+            ensureMetadataTable();
+
             stmt.execute("""
                 CREATE TABLE sqlite_db.%s AS
                 SELECT * FROM %s;
             """.formatted(tableName, tableName));
+
+            long now = System.currentTimeMillis();
+
+            stmt.execute("""
+                INSERT INTO sqlite_db.table_metadata (table_name, created_at)
+                VALUES ('%s', %d);
+            """.formatted(tableName, now));
 
             conn.close();
 
@@ -162,6 +172,23 @@ public class FileController {
         } catch (Exception e) {
             response.put("error", e.getMessage());
             return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    private void ensureMetadataTable() throws SQLException {
+        String sqliteUrl = "jdbc:sqlite:data.db";
+        
+        try (Connection conn = DriverManager.getConnection(sqliteUrl);
+            Statement stmt = conn.createStatement()) {
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS table_metadata (
+                    table_name TEXT PRIMARY KEY,
+                    created_at INTEGER NOT NULL
+                );
+            """);
+
+            System.out.println("Metadata table ensured.");
         }
     }
 }
