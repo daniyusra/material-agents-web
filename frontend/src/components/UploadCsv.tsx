@@ -10,6 +10,7 @@ const UploadCsv: React.FC<UploadCsvProps> = ({ onUploadSuccess }) => {
   const [responseMessage, setResponseMessage] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isUploaded, setIsUploaded] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -25,6 +26,7 @@ const UploadCsv: React.FC<UploadCsvProps> = ({ onUploadSuccess }) => {
       return;
     }
 
+    setResponseMessage("");
     const formData = new FormData();
     formData.append("file", file);
 
@@ -51,61 +53,84 @@ const UploadCsv: React.FC<UploadCsvProps> = ({ onUploadSuccess }) => {
 
       onUploadSuccess(response.data);
       setResponseMessage("Upload successful");
+
+      setTimeout(() => {
+        setResponseMessage("");
+        setIsUploading(false);
+        setIsUploaded(true);
+      }, 500);
     } catch (error) {
       console.error("Upload failed:", error);
       setResponseMessage("Upload failed.");
-    } finally {
       setIsUploading(false);
-    }
+    } 
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "40px auto" }}>
-      <h2>Upload CSV</h2>
-
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFileChange}
-      />
-
-      <button
-        onClick={handleUpload}
-        disabled={isUploading}
-        style={{ marginTop: "10px" }}
-      >
-        {isUploading ? "Uploading..." : "Upload"}
-      </button>
+    <div className="max-w-2xl mx-auto items-center gap-3 p-6 shadow-lg rounded-2xl bg-neutral-800 border border-neutral-700 my-3">
+      <div className="flex">
+        <div className="mx-auto">
+          <label className="block text-sm font-medium pb-6">
+            Upload CSV
+          </label>
+          {
+            isUploaded && (
+            <label className="block text-sm pb-6">
+              File uploaded successfully! Filename: {file != null ? file.name : ""}
+            </label>
+          )}
+          {
+            !isUploaded && (
+            <input
+              type="file"
+              id="csv-upload"
+              accept=".csv, text/csv"
+              className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-xl file:border-0
+                file:text-sm file:font-semibold
+                file:bg-white file:text-black
+                hover:file:bg-neutral-200"
+              onChange={handleFileChange}
+            />
+          )}
+        </div>
+        
+        <div className="mx-auto">
+          <button
+            onClick={handleUpload}
+            disabled={isUploading || isUploaded}
+            style={{ marginTop: "10px" }}
+            className="bg-white text-black px-4 py-2 rounded-xl font-medium hover:bg-neutral-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isUploading ? "Uploading..." : "Upload"}
+          </button>
+        </div>
+      </div>
 
       {/* Progress Bar */}
       {isUploading && (
-        <div style={{ marginTop: "15px" }}>
-          <div
-            style={{
-              width: "100%",
-              backgroundColor: "#e0e0e0",
-              borderRadius: "5px",
-              height: "20px",
-              overflow: "hidden",
-            }}
-          >
+        <div className="mt-6 w-full max-w-xl mx-auto">
+          
+          <div className="w-full bg-neutral-800 rounded-full h-3 overflow-hidden">
             <div
-              style={{
-                width: `${uploadProgress}%`,
-                backgroundColor: "#4caf50",
-                height: "100%",
-                transition: "width 0.2s ease",
-              }}
+              className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 transition-all duration-300 ease-out"
+              style={{ width: `${uploadProgress}%` }}
             />
           </div>
-          <p>{uploadProgress}%</p>
+
+          <div className="flex justify-between items-center mt-2 text-sm text-neutral-400">
+            <span>Uploading...</span>
+            <span>{uploadProgress}%</span>
+          </div>
+
         </div>
       )}
 
       {responseMessage && (
-        <p style={{ marginTop: "20px" }}>
+        <div className="mt-6 max-w-xl mx-auto text-sm text-emerald-400">
           Server response: {responseMessage}
-        </p>
+        </div>
       )}
     </div>
   );
